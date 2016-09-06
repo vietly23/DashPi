@@ -1,0 +1,14 @@
+{
+  "name": "bower_assets",
+  "homepage": "https://github.com/vietly23/DashPi",
+  "authors": [
+    "SpicyMeatball <vietly23@gmail.com>"
+  ],
+  "description": "",
+  "main": "",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.6.1"
+  }
+}
