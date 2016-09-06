@@ -1,0 +1,34 @@
+.welcome {
+	padding:100px;
+	text-align: center;
+	align-items: baseline;
+
+}
+
+#logo {
+	width: 156px;
+	margin-top: 40px;
+	margin-bottom: 40px;
+}
+span {
+	color: #000000;
+	opacity: .75;
+	font-weight: 900;
+	font-size: 400%;
+}
+
+#sign_in_btn {
+	margin-top: 100px;
+	background:none;
+	border:none;
+	outline: none;
+}
+
+html {
+	background-color: #ECEFF1;
+	-webkit-background-size: cover;
+	-moz-background-size: cover;
+	-o-background-size: cover;
+	background-size: cover;
+	font-family: 'Roboto', sans-serif; 
+}
