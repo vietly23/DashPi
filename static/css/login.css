@@ -10,19 +10,20 @@
 	margin-top: 40px;
 	margin-bottom: 40px;
 }
-span {
+
+#welcome_message {
 	color: #000000;
 	opacity: .75;
 	font-weight: 900;
 	font-size: 400%;
+	margin-bottom: 20px;
+}
+#my-signin2 > div {
+	text-align: center;
+	margin: 0 auto;
+
 }
 
-#sign_in_btn {
-	margin-top: 100px;
-	background:none;
-	border:none;
-	outline: none;
-}
 
 html {
 	background-color: #ECEFF1;

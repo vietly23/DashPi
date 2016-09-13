@@ -5,40 +5,39 @@
 	rel="stylesheet">
 	<link rel="icon" type="image/x-icon" href="{{ url_for ('static', filename='img/favicon.ico') }}">
 	<link rel="stylesheet" type="text/css" href="{{ url_for ('static', filename='css/login.css') }}">
+	<meta name="google-signin-client_id" content="1081427696778-7vhrcf5mt0l1thk1bu283n3cloh0buo6.apps.googleusercontent.com">
 	<title>Welcome</title>
 </head>
 
 <body>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
-
 	<div class="welcome">
 		<img id="logo" src="{{ url_for ('static', filename='img/logo.png') }}">
-		<div>
+		<div id="welcome_message">
 			<span>Welcome to DashPi! Let's get started</span>
 		</div>
-		<button type="button" id="sign_in_btn">
-			<img src="{{ url_for('static', filename='img/btn_google_signin_dark_normal_web@2x.png') }}" 
-			width="300"	id="sign_in_img">
-		</button>
+		<div id="my-signin2"></div>
 	</div>
-<script>
-	var btn = document.getElementById("sign_in_btn");
-	var img_src = document.getElementById("sign_in_img");
-	btn.addEventListener("mousedown", function() {
-		img_src.src="{{ url_for('static', filename='img/btn_google_signin_dark_pressed_web@2x.png') }}";
-	});
-	btn.addEventListener("mouseup", function() {
-		img_src.src="{{ url_for('static', filename='img/btn_google_signin_dark_normal_web@2x.png') }}";
-	});
-	btn.addEventListener("mouseover", function() {
-		img_src.src="{{ url_for('static', filename='img/btn_google_signin_dark_focus_web@2x.png') }}";
-	});
-	btn.addEventListener("mouseout", function() {
-		img_src.src="{{ url_for('static', filename='img/btn_google_signin_dark_normal_web@2x.png') }}";
-	});
-	btn.onclick = function() {
-		location.href = "{{ auth_uri|safe }}";
-	};
-</script>
+	<script>
+		function onSuccess(googleUser) {
+			console.log('Logged in as: ' + googleUser.getBasicProfile().getName());
+		}
+		function onFailure(error) {
+			console.log(error);
+		}
+		function renderButton() {
+			gapi.signin2.render('my-signin2', {
+				'scope': 'profile email',
+				'height': 50,
+				'width' : 240,
+				'longtitle': true,
+				'theme': 'dark',
+				'onsuccess': onSuccess,
+				'onfailure': onFailure
+			});
+		}
+	</script>
+	<script src="https://apis.google.com/js/platform.js?onload=renderButton" async defer></script>
+	<script src="https://apis.google.com/js/platform.js" async defer></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
 </body>
 </html>

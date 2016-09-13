@@ -1,8 +1,11 @@
 import flask
-import urllib.parse
 import json
 import hashlib
 import os
+
+import urllib.parse
+import http.client
+import oauth2client.client as client
 
 app = flask.Flask(__name__)
 app.secret_key = '3512a68c-3b77-474f-b807-0a24d73ac98b'
@@ -11,11 +14,13 @@ app.debug = True
 SCOPE = ['https://www.googleapis.com/auth/calendar.readonly',
 			'https://www.googleapis.com/auth/gmail.readonly'
 			]
+REDIRECT_URI='http://localhost:5000/oauth2callback'
 
-#FLOW = client.flow_from_clientsecrets('../client_secret.json', SCOPE,
-		#redirect_uri='http://www.192.168.0.196.xip.io:5000/oauth2callback')
+FLOW = client.flow_from_clientsecrets('../client_secret.json', SCOPE,
+		redirect_uri=REDIRECT_URI)
 
 #REDIRECT_URI='http://www.192.168.0.196.xip.io:5000/oauth2callback'
+G_TOKEN_URL = 'https://www.googleapis.com/oauth2/v4/token'
 
 @app.route('/')
 def index():
@@ -27,10 +32,10 @@ def index():
 @app.route('/login')
 def login():
 	state = hashlib.sha256(os.urandom(1024)).hexdigest()
+	auth_uri = FLOW.step1_get_authorize_url(state=state)
 	flask.session['state'] = state
-	state_str = urllib.parse.urlencode({'state': state})
-	auth_uri = G_LOGIN_URL + "&{}".format(state_str)
-	return flask.render_template('login.html', auth_uri=auth_uri) 
+	#return flask.render_template('login.html', auth_uri=auth_uri) 
+	return flask.render_template('login.html')
 
 @app.route('/oauth2callback')
 def oauth2callback():
@@ -39,7 +44,7 @@ def oauth2callback():
 	if 'state' not in flask.session:
 		return flask.redirect(flask.url_for('login'))
 	elif flask.request.args.get('state') != flask.session['state']:
-			return flask.redirect(flask.url_for('login'))
+		return flask.redirect(flask.url_for('login'))
 	else:
 		auth_code = flask.request.args.get('code')
 		credentials = FLOW.step2_exchange(auth_code)
@@ -50,6 +55,10 @@ def oauth2callback():
 def logout():
 	flask.session.clear()
 	return "session cleared" 
+
+@app.route('/error/<int:error_code>')
+def show_error(error_code):
+	return flask.render_template('{}.html'.format(error_code))
 
 def __create_oauth_url(**kwargs):
 	client_secret_file = '../client_secret.json'
@@ -65,9 +74,6 @@ def __create_oauth_url(**kwargs):
 	params = urllib.parse.urlencode(values)
 	return BASE_URL % params
 	
-REDIRECT_URI='http://localhost:5000/oauth2callback'
-BASE_URL = 'https://accounts.google.com/o/oauth2/v2/auth?%s'
-G_LOGIN_URL = __create_oauth_url() 
 
 if __name__ == '__main__':
 	pass
