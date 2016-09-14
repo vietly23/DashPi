@@ -10,7 +10,7 @@
 </head>
 
 <body>
-	<div class="welcome">
+	<div class="welcome">	
 		<img id="logo" src="{{ url_for ('static', filename='img/logo.png') }}">
 		<div id="welcome_message">
 			<span>Welcome to DashPi! Let's get started</span>
@@ -20,13 +20,16 @@
 	<script>
 		function onSuccess(googleUser) {
 			console.log('Logged in as: ' + googleUser.getBasicProfile().getName());
+			var id_token = googleUser.getAuthResponse().id_token;
+
 		}
 		function onFailure(error) {
 			console.log(error);
 		}
 		function renderButton() {
 			gapi.signin2.render('my-signin2', {
-				'scope': 'profile email',
+				'scope': 'profile email https://www.googleapis.com/auth/calendar.readonly' +
+					'https://www.googleapis.com/auth/gmail.readonly',
 				'height': 50,
 				'width' : 240,
 				'longtitle': true,
