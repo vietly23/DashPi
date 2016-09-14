@@ -5,7 +5,8 @@ import os
 
 import urllib.parse
 import http.client
-import oauth2client.client as client
+from oauth2client import client
+from oauth2client import crypt
 
 app = flask.Flask(__name__)
 app.secret_key = '3512a68c-3b77-474f-b807-0a24d73ac98b'
@@ -14,12 +15,11 @@ app.debug = True
 SCOPE = ['https://www.googleapis.com/auth/calendar.readonly',
 			'https://www.googleapis.com/auth/gmail.readonly'
 			]
-REDIRECT_URI='http://localhost:5000/oauth2callback'
+#Use this URL if you're testing via multiple devices. xip.io is awesome
+#REDIRECT_URL='http://www.192.168.0.196.xip.io:5000/oauth2callback'
+REDIRECT_URL='http://localhost:5000/oauth2callback'
 
-FLOW = client.flow_from_clientsecrets('../client_secret.json', SCOPE,
-		redirect_uri=REDIRECT_URI)
 
-#REDIRECT_URI='http://www.192.168.0.196.xip.io:5000/oauth2callback'
 G_TOKEN_URL = 'https://www.googleapis.com/oauth2/v4/token'
 
 @app.route('/')
@@ -31,25 +31,27 @@ def index():
 
 @app.route('/login')
 def login():
-	state = hashlib.sha256(os.urandom(1024)).hexdigest()
-	auth_uri = FLOW.step1_get_authorize_url(state=state)
-	flask.session['state'] = state
 	#return flask.render_template('login.html', auth_uri=auth_uri) 
 	return flask.render_template('login.html')
 
-@app.route('/oauth2callback')
+@app.route('/oauth2callback', methods=['POST'])
 def oauth2callback():
-	if flask.request.args.get('error') == 'access_denied':
-		return flask.redirect(flask.url_for('login'))
-	if 'state' not in flask.session:
-		return flask.redirect(flask.url_for('login'))
-	elif flask.request.args.get('state') != flask.session['state']:
-		return flask.redirect(flask.url_for('login'))
-	else:
-		auth_code = flask.request.args.get('code')
-		credentials = FLOW.step2_exchange(auth_code)
-		flask.session['google_credentials'] = credentials.to_json()
-		return flask.redirect(flask.url_for('index'))
+	token = flask.request.form['idtoken']
+	# (Receive token by HTTPS POST)
+	try:
+		idinfo = client.verify_id_token(token, CLIENT_ID)
+		# If multiple clients access the backend server:
+		if idinfo['aud'] not in [ANDROID_CLIENT_ID, IOS_CLIENT_ID, WEB_CLIENT_ID]:
+			raise crypt.AppIdentityError("Unrecognized client.")
+		if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
+			raise crypt.AppIdentityError("Wrong issuer.")
+		if idinfo['hd'] != APPS_DOMAIN_NAME:
+			raise crypt.AppIdentityError("Wrong hosted domain.")
+	except crypt.AppIdentityError:
+		# Invalid token
+		return flask.redirect(flask.url_for('error/401'), 303)
+
+	userid = idinfo['sub']
 
 @app.route('/logout')
 def logout():
@@ -66,7 +68,7 @@ def __create_oauth_url(**kwargs):
 		client_id = json.loads(f.read())['web']['client_id']
 	values = {'response_type' : 'code',
 			'client_id' : client_id,
-			'redirect_uri' : REDIRECT_URI,
+			'redirect_uri' : REDIRECT_URL,
 			'scope' : ' '.join(SCOPE),
 			'access_type' : 'offline',
 			'include_granted_scopes' : 'true'}
